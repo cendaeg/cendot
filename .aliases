@@ -1,0 +1,141 @@
+#Terminal Aliases
+alias zs="source ~/.zshrc"
+alias L="| less"
+alias biggest="find -type f -printf '\'%s %p\n'\' | sort -nr | head -n 40 | gawk '{ print \$1/1000000 \" \" \$2 \" \" \$3 \" \" \$4 \" \" \$5 \" \" \$6 \" \" \$7 \" \" \$8 \" \" \$9 }'"
+alias la="ls -a"
+alias lh="ls -ld .??*"
+alias p="python3"
+alias py="python3"
+alias sync="./sync-proj"
+alias v="vim"
+alias pen="open http://codepen.io/pen"
+#Brew Aliases
+alias br="brew"
+alias brc="brew cask"
+
+#Hub Alias
+alias git="hub"
+
+#Useful Tool Aliases
+alias ip="dig +short myip.opendns.com @resolver1.opendns.com"
+alias fs="stat -f \"%z bytes\""
+# Stuff I never really use but cannot delete either because of http://xkcd.com/530/
+alias stfu="osascript -e 'set volume output muted true'"
+alias pumpitup="osascript -e 'set volume 10'"
+# Hide/show all desktop icons (useful when presenting)
+alias hidedesktop="defaults write com.apple.finder CreateDesktop -bool false && killall Finder"
+alias showdesktop="defaults write com.apple.finder CreateDesktop -bool true && killall Finder"
+#TODO ALIASES
+alias todo="cd ~ && nd todo.md"
+alias etodo="v ~/todo.md"
+#LaTeX ALIASES
+alias latexmk='latexmk.pl -pdf -pvc'
+
+#SPOTIFY ALIASES
+alias spotify="osascript ~/bin//SpotifyControl/SpotifyControl.scpt"
+# GLOBAL ALAISES
+alias -g L="|less" # Write L after a command to page through the output.
+alias -g TL='| tail -20'
+# EDITOR ALIASES
+alias v="vim"
+alias e="$EDITOR"
+#TMUX ALIASES
+alias t="tmux"
+alias tsource="tmux source-file ~/.tmux.conf"
+alias tk="tmux kill-session -t"
+alias tl="tmux ls"
+alias ta="tmux attach -t"
+alias mux="tmuxinator"
+#EDIT ALIASES
+alias eali="e ~/.aliases"
+
+# ZSH ALIASES
+alias zshconfig="e ~/.zshrc"
+alias ohmyzsh="e ~/.oh-my-zsh"
+
+#Show/Hide Desktop
+alias hidedesk="defaults write com.apple.finder CreateDesktop -bool false; killall Finder"
+alias showdesk="defaults write com.apple.finder CreateDesktop -bool true; killall Finder"
+
+#Matchbox AWS alias
+alias aws-add-ip="aws ec2 authorize-security-group-ingress --group-name MatchBOX --protocol tcp --port 22 --cidr $(ip)/32"
+
+
+#Functions
+mcd () { mkdir $1; cd $1;}
+
+# ----------------------
+# Git Aliases
+# ----------------------
+alias ga='git add'
+alias gaa='git add .'
+alias gaaa='git add -A'
+alias gb='git branch'
+alias gbd='git branch -d '
+alias gc='git commit'
+alias gcm='git commit -m'
+alias gcma='git commit -am'
+alias gco='git checkout'
+alias gcob='git checkout -b'
+alias gcom='git checkout master'
+alias gd='git diff'
+alias gda='git diff HEAD'
+alias gin='git init'
+alias gl='git log'
+alias glg='git log --graph --oneline --decorate --all'
+alias gld='git log --pretty=format:"%h %ad %s" --date=short --all'
+alias gm='git merge --no-ff'
+alias gp='git pull'
+alias gss='git status -s'
+alias gst='git stash'
+alias gstl='git stash list'
+alias gstp='git stash pop'
+alias gstd='git stash drop'
+
+# ----------------------
+# Git Functions
+# ----------------------
+# Git log find by commit message
+function glf() { git log --all --grep="$1"; }
+
+function note() {
+  filename=$(basename "$1")
+  extension="${filename##*.}"
+  filename="${filename%.*}"
+  cp ~/bin/pandoc/pandoc.css pandoc.css;
+  pandoc -s --mathjax $1 -o "${filename}.html" -c pandoc.css;
+}
+
+# MISC
+
+function anybar { echo -n $1 | nc -4u -w0 localhost ${2:-1738}; }
+
+alias todoSync='todoist-habitrpg -u 17e72e4e-0ac8-4fd3-af49-2eb7dab0e34d -t 0b4b5a36-cd3c-4e6f-9362-e432032ddc4b -a 36977304ae0c549219c2a1834c329a7cc46656ae'
+
+# ------------------------
+# Mercurial Aliases
+# ------------------------
+
+alias hga='hg add'
+alias hgaa='hg add .'
+alias hgb='hg branch'
+alias hgbc='hg branch | pbcopy'
+alias hgbs='hg branches'
+alias hgc='hg commit'
+alias hgcm='hg commit -m'
+alias hgl='hg log'
+alias hgl='hg glog'
+alias hgs='hg status'
+alias hgql="hg status | awk '$1 == \"?\" { print \"?\" } $1 == \"!\" { print \"!\" } ($1 == \"M\") { print \"⤴\" } $1 == \"A\" { print \"+\" } $1 == \"R\" { print \"-\" } ($1 != \"?\" && $1 != \"!\" && $1 != \"M\" && $1 != \"A\" && $1 != \"R\") { print \"\" }' | sort | uniq | cat | tr '\n' '\000'"
+alias hgp='hg pull'
+alias hgpu='hg push'
+alias hgpub='hg push --new-branch'
+alias hgd='hg diff'
+
+#JShint
+alias jshint="jshint --reporter `npm root -g`/jshint-stylish-ex/stylish.js"
+# alias eslint="eslint -f `npm root -g`/eslint-stylish/stylish.js"
+
+alias firefox="open /Applications/FirefoxDeveloperEdition.app"
+
+function mdless() { pandoc -s -f markdown -t man $1 | groff -T utf8 -man | less }
