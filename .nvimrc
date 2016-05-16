@@ -2,7 +2,7 @@
 set nocompatible              " be iMproved, required
 filetype off                  " required
 
-" Plugged setup
+" Vundle setup
 let path='$HOME/.vim/bundle'
 call plug#begin('~/.vim/plugged')
 Plug 'kien/ctrlp.vim'
@@ -11,15 +11,12 @@ Plug 'jelera/vim-javascript-syntax'
 Plug 'pangloss/vim-javascript'
 Plug 'flazz/vim-colorschemes'
 Plug 'tpope/vim-commentary'
-Plug 'marijnh/tern_for_vim'
 Plug 'tpope/vim-fugitive'
 Plug 'Lokaltog/vim-easymotion'
 Plug 'scrooloose/nerdtree'
 Plug 'scrooloose/syntastic'
-Plug 'nathanaelkane/vim-indent-guides'
 Plug 'vim-scripts/mru.vim'
 Plug 'tpope/vim-surround'
-Plug 'mattn/emmet-vim'
 Plug 'groenewege/vim-less'
 Plug 'othree/html5-syntax.vim'
 Plug 'terryma/vim-expand-region'
@@ -29,41 +26,49 @@ Plug 'tpope/vim-git'
 Plug 'elixir-lang/vim-elixir'
 Plug 'freeo/vim-kalisi'
 Plug 'isRuslan/vim-es6'
-Plug 'sjbach/lusty'
-Plug 'Shougo/neocomplete.vim'
+Plug 'Shougo/deoplete.nvim'
 Plug 'elixir-lang/vim-elixir'
 Plug 'sophacles/vim-bundle-mako'
 Plug 'itchyny/lightline.vim'
 Plug 'mhinz/vim-signify'
-Plug 'edkolev/tmuxline.vim'
 Plug 'mbbill/undotree'
-Plug 'chriskempson/base16-vim'
 Plug 'ap/vim-buftabline'
 Plug 'moll/vim-bbye'
 Plug 'PProvost/vim-markdown-jekyll'
 Plug 'shuber/vim-promiscuous'
-" Great color scheme, current scheme 'viking' based on this
-" Plug 'romainl/Apprentice'
-Plug 'terryma/vim-multiple-cursors'
+Plug 'junegunn/fzf', { 'do': 'yes \| ./install' }
+Plug 'clausreinke/typescript-tools.vim'
+Plug 'leafgarland/typescript-vim'
 call plug#end()
-
+source /usr/share/vim/vim73/macros/matchit.vim
 filetype plugin indent on    " required
-
 
 " ------------------------------------------------------------ LOOKS
 set t_Co=256                          " 256 color range
-syntax enable					                " enable syntax processing
+syntax on   					                " enable syntax processing
 set background=dark                   " dark background
-" colorscheme apprentice
 colorscheme viking
 set t_ut=
 highlight VertSplit ctermbg=NONE      " hide color of vim split bar
 set cursorline                        " highlight current line
 
+" ------------------------------------------------------------ FOLDING MARKERS
+
+set foldmarker=#--,--#
+set foldlevel=0
+set foldmethod=marker
+""set foldcolumn=2
+
+" ------------------------------------------------------------ TIMESTAMPING ON F5
+
+"These timestamps might be a little too detailed for your use (2016-01-19 Tue 10:48 am)
+"The day and time may be redundant and too cluttered
+nmap <F5> a<C-R>=strftime("%Y-%m-%d %a %I:%M %p")<CR><Esc>
+imap <F5> <C-R>=strftime("%Y-%m-%d %a %I:%M %p")<CR>
 
 " ------------------------------------------------------------ LIGHTLINE
 let g:lightline = {
-      \ 'colorscheme': 'wombat',
+      \ 'colorscheme': 'seoul256',
       \ 'component_function': {
       \   'fugitive': 'LightLineFugitive',
       \   'readonly': 'LightLineReadonly',
@@ -74,10 +79,10 @@ let g:lightline = {
       \   'filename': 'LightLineFilename',
       \ },
       \ 'active': {
-      \   'left': [ [ 'filename', 'fugitive' ], [ 'readonly', 'modified' ]],
-      \   'right': [ [ 'syntastic', 'lineinfo' ], ['percent'], [ 'filetype', 'ctrlpmark' ]]
+      \   'left': [ [ 'filename', 'fugitive'], [ 'readonly', 'modified' ]],
+      \   'right': [ [ 'lineinfo' ], [ 'ctrlpmark' ]]
       \ },
-      \ 'separator': { 'left': '', 'right': '', },
+      \ 'separator': { 'left': '▊', 'right': '▊', },
       \ 'subseparator': { 'left': '☠', 'right': '☠', },
       \ }
 set noshowmode
@@ -89,19 +94,17 @@ function! LightLineFilename()
         \ &ft == 'vimfiler' ? vimfiler#get_status_string() :
         \ &ft == 'unite' ? unite#get_status_string() :
         \ &ft == 'vimshell' ? vimshell#get_status_string() :
-        \ ('' != LightLineReadonly() ? LightLineReadonly() . ' ' : '') .
-        \ ('' != fname ? fname : '[No Name]') .
-        \ ('' != LightLineModified() ? ' ' . LightLineModified() : '')
+        \ ('' != fname ? fname : '[No Name]')
 endfunction
 function! LightLineModified()
   if &filetype == "help"
     return ""
   elseif &modified
-    return "+"
+    return "☃"
   elseif &modifiable
-    return ""
+    return "✔"
   else
-    return ""
+    return "✔"
   endif
 endfunction
 
@@ -109,7 +112,7 @@ function! LightLineReadonly()
   if &filetype == "help"
     return ""
   elseif &readonly
-    return "⭤"
+    return "☠"
   else
     return ""
   endif
@@ -117,16 +120,13 @@ endfunction
 function! LightLineFugitive()
   try
     if expand('%:t') !~? 'Tagbar\|Gundo\|NERD' && &ft !~? 'vimfiler' && exists('*fugitive#head')
-      let mark = ''  " edit here for cool mark
+      let mark = ' '  " edit here for cool mark
       let _ = fugitive#head()
       return strlen(_) ? mark._ : ''
     endif
   catch
   endtry
   return ''
-endfunction
-function! LightLineFiletype()
-  return winwidth(0) > 70 ? (strlen(&filetype) ? &filetype : 'no ft') : ''
 endfunction
 function! CtrlPMark()
   if expand('%:t') =~ 'ControlP'
@@ -154,45 +154,44 @@ function! CtrlPStatusFunc_2(str)
   return lightline#statusline(0)
 endfunction
 
-augroup AutoSyntastic
-  autocmd!
-  autocmd BufWritePost *.c,*.cpp call s:syntastic()
-augroup END
-function! s:syntastic()
-  SyntasticCheck
-  call lightline#update()
-endfunction
-
-
-
-" ------------------------------------------------------------ LEADER
-let mapleader="\<Space>"              " leader is <space>
-
-" enter visual mode with <space><space>
-nmap <Leader><Leader> V               
-" open up Silver Searcher with <space>a
-nnoremap <leader>a :Ag 
-""""" RELOAD VIMRC WITH <space>sv
+" Reload Vim when .vimrc is changed
 augroup reload_vimrc
     autocmd!
     autocmd bufwritepost $MYVIMRC nested source $MYVIMRC
 augroup END
+
+" ------------------------------------------------------------ LEADER
+
+let mapleader="\<Space>"              " leader is <space>
+
+"Reload vimrc
+map <Leader>R :source $MYVIMRC
+" open up Silver Searcher with <space>a
+nnoremap <Leader>a :Ag 
 """""
 " save with <space>w
 nnoremap <Leader>w :w<CR>
 " sudo write with <space>W
-noremap <leader>W :w !sudo tee %<CR>
+noremap <Leader>W :w !sudo tee %<CR>
 " insert line with <space>Enter
 nnoremap <Leader><CR> o<Esc>
 " insert line in insert mode with <ctrl>c
 imap <C-c> <CR><Esc>O
 " unhighlight everything
-nnoremap <Leader>h :noh<CR>
+nnoremap <Leader>x :noh<CR>
 """"" Buffer navigation (<Space>,) (<Space>]) (<Space>[) (<space>ls)
-map <leader>, <C-^>
-map <leader>] :bnext<CR>
-map <leader>[ :bprev<CR>
-map <leader>ls :buffers<CR>
+map <Leader>, <C-^>
+map <Leader>] :bnext<CR>
+map <Leader>[ :bprev<CR>
+map <Leader>ls :buffers<CR>
+"move current line to the end of buffer without moving cursor
+nnoremap <Leader>mv ddGp``
+"copy current line to the end of buffer without moving cursor
+nnoremap <Leader>cp YGp``
+
+map <leader>bc :Bdelete<CR>
+vmap <Leader>sc setlocal spell        " <space>sc to spellcheck
+
 """""
 " ------------------------------------------------------------ INDENTATION
 set tabstop=2				                  " two spaces per tab
@@ -218,6 +217,8 @@ map K  <Plug>(expand_region_expand)
 " use K to expand select region
 map J <Plug>(expand_region_shrink)
 " use J to shrink select region
+let g:deoplete#enable_at_startup = 1
+
 
 let g:expand_region_text_objects = {
       \ 'iw'  :0,
@@ -236,16 +237,9 @@ set showmode                          " Show the current mode.
 set showtabline=2                     " Always show tab bar.
 set lazyredraw                        " Don't redraw all the time
 set showmatch                         " highlight matching [{}]
-""""" Spellcheck all files
-"""""
 " Move more naturally up/down when wrapping is enabled.
 nnoremap j gj
 nnoremap k gk
-
-" ----------------------------------------- DISABLED
-"set mouse=a                           " Enable mouse in all in all modes.
-" ^ not set to stop my n00b3ry
-
 
 " ------------------------------------------------------------ SEARCH
 set incsearch                         " search as characters are typed
@@ -274,13 +268,17 @@ set undofile                          " persistent undo
 set backupdir=~/.vim/backups          " use global backup directory
 set directory=~/.vim/swaps            " use global swaps directory
 set undodir=~/.vim/undo               " use global undo directory
-
-" ------------------------------------------------------------ BUFFERS
-map <leader>bc :Bdelete<CR>
+if has('persistent_undo')
+    set rtp+=~/configit/vim/modules/undotree
+    nnoremap <silent> <Space>u :UndotreeToggle<CR>
+    let g:undotree_SetFocusWhenToggle = 1
+    set undofile
+    set undodir=~/.undodir/
+    set undolevels=1000
+    set undoreload=10000
+endif
 
 " ------------------------------------------------------------ MOVEMENT
-nnoremap <C-e> 3<C-e>                 " speed up viewport scrolling
-nnoremap <C-y> 3<C-y>                 " speed up viewport scrolling
 """"" EASYMOTION PREFIX <space>e
 nmap <Leader>e <Plug>(easymotion-prefix)
 """""
@@ -294,10 +292,6 @@ nmap <Leader>P "+P
 vmap <Leader>p "+p
 vmap <Leader>P "+P
 """""
-
-" ------------------------------------------------------------ REMAPS
-nnoremap J mjJ`j                      " J to join lines
-vmap <Leader>sc setlocal spell        " <space>sc to spellcheck
 
 " ------------------------------------------------------------ CTRLP
 let g:ctrlp_match_window = 'bottom,order:ttb'
@@ -314,12 +308,12 @@ let g:ctrlp_custom_ignore = '\v[\/]\.(git|hg|svn)$'
 " ------------------------------------------------------------ SYNTASTIC
 let g:syntastic_always_populate_loc_list = 1
 let g:syntastic_auto_loc_list = 1
-let g:syntastic_check_on_open = 1
-let g:syntastic_check_on_wq = 0
+let g:syntastic_check_on_open = 0
+let g:syntastic_check_on_wq = 1
 let g:syntastic_javascript_checkers = ["eslint"]
 " ------------------------------------------------------------ NERDTREE
 " autocmd vimenter * NERDTree         " use nerdtree on open
-autocmd VimEnter * wincmd p         "
+autocmd VimEnter * wincmd p
 noremap <C-\> :NERDTreeToggle<CR>         " use ctrl-\ to open nerdtree
 autocmd StdinReadPre * let s:std_in=1 "
 """""
@@ -341,42 +335,7 @@ augroup CloseIfOnlyControlWinLeft
 augroup END
 
 
-" -------------------------------------------------------- EasyMotion settings
-
-" Replace default search with easymotion search
-map  / <Plug>(easymotion-sn)
-omap / <Plug>(easymotion-tn)
-
-" These `n` & `N` mappings are options. You do not have to map `n` & `N` to EasyMotion.
-" Without these mappings, `n` & `N` works fine. (These mappings just provide
-" different highlight method and have some other features )
-map  n <Plug>(easymotion-next)
-map  N <Plug>(easymotion-prev)
-
-
 " ------------------------------------------------------------ Extra Functions
-vmap \em :call ExtractMethod()<CR>
-function! ExtractMethod() range
-  let name = inputdialog("Name of new method:")
-  let args = inputdialog("Args. of new method:")
-  "Get selected text
-  let [lnum1, col1] = getpos("'<")[1:2]
-  let [lnum2, col2] = getpos("'>")[1:2]
-  let lines = getline(lnum1, lnum2)
-  let lines[-1] = lines[-1][: col2 - (&selection == 'inclusive' ? 1 : 2)]
-  let lines[0] = lines[0][col1 - 1:]
-  let code = join(lines, "\n")
-  exe "normal! }ofunction ". name ."(". args .") {\<ESC>=="
-  exe "normal! o". code ."\<ESC>=="
-  exe "normal! o}\<ESC>"
-endfunction
-
-" Reload Vim when making changes to the file
-augroup reload_vimrc " {
-  autocmd!
-  autocmd BufWritePost $MYVIMRC source $MYVIMRC
-augroup END " }"
-
 autocmd Filetype gitcommit setlocal spell textwidth=72
 
 
@@ -389,3 +348,11 @@ au BufNewFile,BufRead *.mak set filetype=mako
 " ------------------------------------------------------------ Promiscuous
 nmap <leader>gb :Promiscuous<cr>
 nmap <leader>gg :Promiscuous -<cr>
+
+" ------------------------------------------------------------ Refactor
+nmap <leader>rf :call Refactor()<CR>
+function! Refactor()
+  let rf1 = inputdialog("From:")
+  let rf2 = inputdialog("To:")
+  exe "normal! :%s/\(.*\)". rf1 ."(.*\)/mv & \1". rf2 ."\2<CR>"
+endfunction

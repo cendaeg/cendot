@@ -1,0 +1,41 @@
+#!/bin/bash
+for f in \
+"cheat" \
+"ctags" \
+"docker" \
+"ffmpeg" \
+"git" \
+"go" \
+"highlight" \
+"htop" \
+"hub" \
+"mackup" \
+"mercurial" \
+"mongodb" \
+"mpc" \
+"mpd" \
+"ncmpcpp" \
+"node" \
+"nvm" \
+"pandoc" \
+"openssl" \
+"python" \
+"python3" \
+"ranger" \
+"reattach-to-user-namespace" \
+"selecta" \
+"the_silver_searcher" \
+"tmux" \
+"tree" \
+"vim" \
+"vtclock" \
+"w3m" \
+"weechat" \
+"wget" \
+"youtube-dl" \
+"z" \
+"zsh"
+do
+  echo "Installing $f"
+  brew install $f
+done

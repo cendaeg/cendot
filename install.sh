@@ -11,7 +11,7 @@ brew tap phinze/homebrew-cask
 brew install brew-cask
 
 #Install brew files
-sh brew.sh
+.\brew
 
 #Install Cask Files
 sh cask.sh
